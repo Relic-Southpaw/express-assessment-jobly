@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, ExpressError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -56,10 +56,13 @@ router.get("/", async function (req, res, next) {
   // using the unary operator + to convert query numbers to int from string
   if (q.minEmployees !== undefined) q.minEmployees = +q.minEmployees;
   if (q.maxEmployees !== undefined) q.maxEmployees = +q.maxEmployees;
-  if (q.minEmployees !== undefined && q.minEmployees > q.maxEmployees) {
-    throw new BadRequestError("ERROR! Minimum number of employees exceeds Maximum")
-  }
+  console.log(q.maxEmployees)
+  console.log(q.minEmployees)
+
   try {
+    if (q.maxEmployees < q.minEmployees) {
+      throw new BadRequestError("Min cannot exceed Max.")
+    }
     const validator = jsonschema.validate(q, filterCompanySchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
