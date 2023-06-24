@@ -50,14 +50,53 @@ class Company {
    * */
 
   static async findAll(filters = {}) {
+    const { minEmployees, maxEmployees, name } = filters;
+    let query = "WHERE"
+    let secSlot = 1;
+    let vars = [];
+    // the if statements check the query filters, and if they're there
+    // it writes the SQL
+    // if more than one are passed it adds them together to the SQL query
+    // and adds them to the vars list to add at the end to use 
+    // the $1,$2,$3 for security
+    if (minEmployees !== undefined) {
+      query += ` num_employees >= $${secSlot}`;
+      secSlot += 1;
+      vars.push(minEmployees);
+    }
+    if (maxEmployees !== undefined) {
+      if (query !== "WHERE") {
+        query += `AND num_employees <= $${secSlot}`;
+        secSlot += 1;
+        vars.push(maxEmployees)
+      } else {
+        query += ` num_employees <= $${secSlot}`;
+        secSlot += 1;
+        vars.push(maxEmployees)
+      }
+    }
+    if (name) {
+      S
+      if (query !== "WHERE") {
+        query += `AND UPPER name LIKE UPPER $${secSlot}`
+        vars.push(name)
+      } else {
+        query += ` UPPER name LIKE UPPER ${secSlot}`
+        vars.push(name)
+      }
+    }
+    if (query === "WHERE") {
+      query = " "
+    }
     const companiesRes = await db.query(
       `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
+           FROM companies ${query}
+            ORDER BY name`, vars);
+    console.log(companiesRes)
     return companiesRes.rows;
   }
 

@@ -11,6 +11,7 @@ const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
+const filterCompanySchema = require("../schemas/filterCompany.json");
 
 const router = new express.Router();
 
@@ -51,17 +52,21 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  if (req.query.minEmployees !== undefined) req.query.minEmployees += req.query.minEmployees;
-  if (req.query.maxEmployees !== undefined) req.query.maxEmployees += req.query.maxEmployees;
-
+  let q = req.query
+  // using the unary operator + to convert query numbers to int from string
+  if (q.minEmployees !== undefined) q.minEmployees = +q.minEmployees;
+  if (q.maxEmployees !== undefined) q.maxEmployees = +q.maxEmployees;
+  if (q.minEmployees !== undefined && q.minEmployees > q.maxEmployees) {
+    throw new BadRequestError("ERROR! Minimum number of employees exceeds Maximum")
+  }
   try {
-    const validator = jsonschema.validate(req.query, filterCompanySchema);
+    const validator = jsonschema.validate(q, filterCompanySchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
 
-    const companies = await Company.findAll(req.query);
+    const companies = await Company.findAll(q);
     return res.json({ companies });
   }
   catch (err) {
