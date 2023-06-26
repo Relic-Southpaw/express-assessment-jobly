@@ -78,4 +78,54 @@ class Job {
         console.log(jobsRes)
         return jobsRes.rows;
     }
+
+    static async get(id) {
+        const res = await db.query(
+            `SELECT
+             id,
+             title,
+             salary,
+             equity,
+             company_handle AS "companyHandle"
+             FROM
+             jobs
+             WHERE id = $1`, [id]
+        );
+        if (!res.rows[0]) {
+            throw new NotFoundError(`Could not find job with ID of ${id}`)
+        }
+        return res.rows[0];
+    }
+
+    static async update(id, data) {
+        const { setCols, values } = sqlForPartialUpdate(
+            data,
+            {});
+        const idVarIdx = "$" + (values.length + 1);
+
+        const querySql = `UPDATE jobs 
+                          SET ${setCols} 
+                          WHERE id = ${idVarIdx} 
+                          RETURNING id, 
+                                    title, 
+                                    salary, 
+                                    equity,
+                                    company_handle AS "companyHandle"`;
+        const res = await db.query(querySql, [...values, id]);
+
+        if (!res.rows[0]) throw new NotFoundError(`No job with ID of ${id}`);
+
+        return res.rows[0];
+    }
+
+    static async remove(id) {
+        const res = await db.query(
+            `DELETE
+               FROM jobs
+               WHERE id = $1
+               RETURNING id`, [id]);
+        if (!res.rows[0]) throw new NotFoundError(`No job with ID of ${id}`);
+    }
 }
+
+module.exports = Job;
