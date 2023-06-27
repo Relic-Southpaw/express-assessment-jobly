@@ -22,7 +22,8 @@ const router = express.Router();
 //}
 //has options to filter by title, minSalary, and hasEquity
 //title can find part of title and casing doesn't matter for search
-//hasEquity returns either jobs with equity(true) or jobs with none.
+//hasEquity: if true, filter to jobs that provide a non-zero amount of equity. 
+//  If false or not included in the filtering, list all jobs regardless of equity.
 
 //open for all, no authorization needed.
 

@@ -123,6 +123,26 @@ class Company {
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
+    /**
+     * Added this section to look for jobs within the company
+     * it searches through jobs where company handle is the same as what the get
+     * request is, then it returns all rows of jobs with the handle
+     * then the company.jobs = jobs.rows attaches all the jobs to that company
+     * so the return value has the job(s) included.
+     */
+    const jobs = await db.query(
+      `SELECT 
+      id, 
+      title, 
+      salary, 
+      equity
+      FROM jobs
+      WHERE company_handle = $1
+      ORDER by id`, [handle]
+    )
+
+    company.jobs = jobs.rows;
+
     return company;
   }
 
