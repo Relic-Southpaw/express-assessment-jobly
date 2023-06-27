@@ -192,6 +192,34 @@ class User {
     return user;
   }
 
+  /** Job Applications
+   * finds job
+   * finds user
+   * and adds that to applications when entered
+   */
+
+  static async jobApply(username, jId) {
+    const findJob = await db.query(`
+    SELECT id
+    FROM jobs
+    WHERE id =$1`,
+      [jId])
+    const job = findJob.rows[0];
+    if (!job) throw new NotFoundError(`could not find job number ${jId}`);
+
+    const findUser = await db.query(`
+    SELECT username
+    FROM users
+    WHERE username =$1`,
+      [username]);
+    const user = findUser.rows[0];
+    if (!user) throw new NotFoundError(`username (${username}) not found!!`)
+
+    await db.query(`
+    INSERT INTO applications (job_id, username)
+    VALUES ($1, $2)`,
+      [jId, username])
+  }
   /** Delete given user from database; returns undefined. */
 
   static async remove(username) {

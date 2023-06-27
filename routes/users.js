@@ -113,6 +113,28 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
   }
 });
 
+/**POST to a specific user 
+ * for a specific job by id
+ * Returns a message showing that it was applied for
+ * 
+ * Auth required: Specific username in params or Admin.
+ */
+router.post("/:username/jobs/:id", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const q = req.params;
+    if (res.locals.user.username !== q.username) {
+      if (res.locals.user.isAdmin === false) {
+        throw new UnauthorizedError();
+      }
+    }
+    const jId = +q.id;
+    await User.jobApply(q.username, jId);
+    return res.json({ applied: jId })
+  } catch (err) {
+    return next(err);
+  }
+});
+
 
 /** DELETE /[username]  =>  { deleted: username }
  *
